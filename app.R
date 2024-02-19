@@ -7,6 +7,7 @@ library(dataset)
 library(rdflib)
 library(csvwr)
 library(jsonlite)
+library(jsonld)
 
 # Define UI for application that draws a histogram
 ui <- page_navbar(
@@ -18,7 +19,7 @@ ui <- page_navbar(
   sidebar = sidebar(
     accordion(
       accordion_panel(
-        "Download datasets",
+        "Fetch API data",
         icon = bsicons::bs_icon("cloud-arrow-down"),
         textInput("dataset_id", span("Dataset ID",
                                      tooltip(
@@ -26,7 +27,7 @@ ui <- page_navbar(
                                        "Input eurostat dataset code here",
                                        placement = "right")
                                      ), "cult_emp_sex"),
-        actionButton("search_button", "Download data")
+        actionButton("search_button", "Fetch data")
         ),
       accordion_panel(
         "Change download parameters",
@@ -153,7 +154,7 @@ ui <- page_navbar(
                 verbatimTextOutput("csvw_json")
               ),
               card_footer(
-                downloadButton('download_dataset_csvw_json, "Download dataset metadata as CSVW JSON')
+                downloadButton('download_csvw_json', "Download dataset metadata as CSVW JSON")
               )
             ))
 
@@ -314,11 +315,14 @@ server <- function(input, output) {
         s$columns$titles[i] <- eurostat::label_eurostat_vars(x = s$columns$titles[i], id = input$dataset_id, lang = input$lang)
       }
 
-      tb <- list(url=v$metadata$DOI_URL, tableSchema=s)
-      m <- csvwr::create_metadata(tables=list(tb))
-      j <- jsonlite::toJSON(m)
-      v$csvw_json <- jsonlite::prettify(j)
-      cat(v$csvw_json, file=v$csvw_json_file)
+      v$tb <- list(url=v$metadata$DOI_URL, tableSchema=s)
+      v$m <- csvwr::create_metadata(tables=list(v$tb))
+      v$json_metadata <- jsonlite::toJSON(v$m)
+      v$csvw_json <- jsonlite::prettify(v$json_metadata)
+      # cat(v$csvw_json, file=v$csvw_json_file)
+      sink(file = v$csvw_json_file)
+      print(v$csvw_json)
+      sink()
 
 
     })
@@ -328,9 +332,7 @@ server <- function(input, output) {
 
   # Dataset view
     output$statistics_table_view <- DT::renderDataTable({
-      if (is.null(v)){
-        return()
-      }
+      req(v$result)
       v$result
     })
 
@@ -343,9 +345,7 @@ server <- function(input, output) {
     })
 
     output$format_dataset <- renderPrint({
-      if (is.null(v)){
-        return()
-      }
+      req(v$output_dataset)
       v$output_dataset
     })
 
@@ -375,9 +375,7 @@ server <- function(input, output) {
     )
 
     output$format_dataset_dublincore <- renderPrint({
-      if (is.null(v)){
-        return()
-      }
+      req(v$output_dataset_dublincore)
       print(v$output_dataset_dublincore, style = "text")
     })
 
@@ -392,9 +390,7 @@ server <- function(input, output) {
 
     # TTL
     output$ttl_dataset <- renderPrint({
-      if (is.null(v)){
-        return()
-      }
+      req(v$dataset_ttl_file)
       print(readLines(v$dataset_ttl_file, 30))
     })
 
@@ -409,9 +405,7 @@ server <- function(input, output) {
 
     # RDF
     output$rdf_dataset <- renderPrint({
-      if (is.null(v)){
-        return()
-      }
+      req(v$dataset_rdf_file2)
       readLines(v$dataset_rdf_file2, 30)
     })
 
@@ -426,9 +420,7 @@ server <- function(input, output) {
 
     # JSON-LD
     output$json_ld_dataset <- renderPrint({
-      if (is.null(v)){
-        return()
-      }
+      req(v$json_ld_file)
       readLines(v$json_ld_file, 30)
     })
 
@@ -443,19 +435,18 @@ server <- function(input, output) {
 
     # CSVW JSON metadata
     output$csvw_json <- renderPrint({
-      if (is.null(v)){
-        return()
-      }
-      readLines(v$csvw_json_file, 30)
+      req(v$csvw_json_file)
+      readLines(v$csvw_json_file, 100)
     })
 
-    output$download_dataset_csvw_json <- downloadHandler(
+    output$download_csvw_json <- downloadHandler(
       filename = function() {
         paste0(input$dataset_id,"_metadata.json")
       },
       content = function(file) {
-        writeLines(paste(v$csvw_json, collapse = ", "), file)
-      }
+        file.copy(v$csvw_json_file, file)
+      },
+      contentType = "application/json"
     )
 
 }
