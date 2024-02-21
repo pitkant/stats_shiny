@@ -46,13 +46,15 @@ install.packages(c("shiny", "bslib", "bsicons", "eurostat", "DT", "dataset", "rd
 
 ### Run from R console
 
-Once the packages are installed, click the "Run App" button in the toolbar of the app.R script, or run the following command in the console:
+Once the packages are installed run the following command in the console:
 
 ```
 shiny::runApp()
 ```
 
 This will launch the Shiny app in your default web browser.
+
+Please make sure that your working directory is the same as the directory where `app.R` file is. You can check this with `getwd()` and change the directory with `setwd()`.
 
 ### Run from RStudio GUI
 
