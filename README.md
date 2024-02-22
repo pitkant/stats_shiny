@@ -17,6 +17,8 @@ If you prefer not to use Git or want to download the contents directly, you can 
 
 ## 2. Install RStudio
 
+To run Shiny apps in R you need to have R installed on your computer. Since this is an R Shiny application this guide presumes that you have R installed, but if you don't you can download it from [The R Project website](https://www.r-project.org).
+
 To run the Shiny app in this repository, you need to have RStudio installed on your computer. Follow the instructions below based on your operating system:
 
 ### Windows
@@ -42,6 +44,15 @@ To run the Shiny app in this repository, you need to have RStudio installed on y
 
 ```
 install.packages(c("shiny", "bslib", "bsicons", "eurostat", "DT", "dataset", "rdflib", "csvwr", "jsonlite", "jsonld"))
+```
+
+Please note that rdflib package may require installing additional system dependencies on your computer, depending on whether you are running macOS or some Linux distribution. If you receive an error message while trying to install rdflib or its dependency redland, please read the installation instructions there carefully and follow them.
+
+Please note that the dataset package can be installed with the following command:
+
+```
+source_url <- https://cran.r-project.org/src/contrib/Archive/dataset/dataset_0.3.1.tar.gz
+install.packages(source_url, repos=NULL, type="source", dependencies = TRUE)
 ```
 
 ### Run from R console
