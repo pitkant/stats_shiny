@@ -13,7 +13,7 @@ library(jsonld)
 ui <- page_navbar(
   theme = bs_theme(preset = "bootstrap"),
   id = "nav",
-  title = "Eurostat statistics browser",
+  title = div(img(src="ome_logo.png", height = 40), "Eurostat statistics browser"),
   fillable = FALSE,
 
   sidebar = sidebar(
@@ -70,6 +70,8 @@ ui <- page_navbar(
     #               multiple = FALSE)
     #   )
     ),
+
+  nav_spacer(),
 
   nav_panel("Table",
             card(
@@ -156,9 +158,65 @@ ui <- page_navbar(
               card_footer(
                 downloadButton('download_csvw_json', "Download dataset metadata as CSVW JSON")
               )
-            ))
+            )
+            ),
+  nav_spacer(),
+  nav_panel("About",
+            card(
+              card_header("About this Shiny app"),
+              card_body(
+                HTML(
+  "This project has received funding from the European Union’s Horizon Europe,
+  research and innovation programme, under Grant Agreement No.101095295.
+  <br><br>
+  Any dissemination of results must indicate that it reflects only the author’s
+  view and that the Commission Agency is not responsible for any use that may
+  be made of the information it contains.
+  <br><br>
+  The Commission Agency is not responsible for any use that may be made of
+  the information it contains. Neither Project Coordinator, nor any signatory
+  party of OpenMusE Project Consortium Agreement, nor any person acting on
+  behalf of any of them:
+  <ul>
+  <li>(a) makes any warranty or representation whatsoever, express or implied,</li>
+  <ul>
+    (i). with respect to the use of any information, apparatus, method, process,
+    or similar item disclosed in this document, including merchantability and
+    fitness for a particular purpose, or
+  </li>
+  <li>
+    (ii). that such use does not infringe on or interfere with privately owned rights,
+    including any party's intellectual property, or
+  </li>
+  <li>
+    (iii). that this document is suitable to any particular user's circumstance; or
+  </li>
+  </ul>
+  <li>(b) assumes responsibility for any damages or other liability whatsoever
+  (including any consequential damages, even if Project Coordinator or any
+  representative of a signatory party of the OpenMusE Project Consortium
+  Agreement, has been advised of the possibility of such damages)
+  resulting from your selection or use of this document or any information,
+  apparatus, method, process, or similar item disclosed in this document.
+  </li>
+  </ul>
+  <br>
+  <img src='eu_funded_en.jpg'>
+  <br>
+  Funded by the European Union. Views and opinions expressed are however
+  those of the author(s) only and do not necessarily reflect those of the
+  European Union or the European Research Executive Agency.
+  Neither the European Union nor the granting authority can be held
+  responsible for them.")
+                )
+              )
+            ),
+  nav_item(
+    input_dark_mode(id = "dark_mode", mode = "light"), align = "right"
+  )
+  )
 
-)
+
 
 
 # Define server logic required to draw a histogram
