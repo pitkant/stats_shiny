@@ -242,7 +242,6 @@ server <- function(input, output) {
         lang = input$lang,
         cache = input$cache,
         update_cache = input$update_cache,
-        # stringsAsFactors = input$stringsAsFactors,
         stringsAsFactors = FALSE,
         keepFlags = input$keepFlags)
 
@@ -264,6 +263,9 @@ server <- function(input, output) {
         "de" = v$metadata$Name_DE
       )
 
+      # Dataset object ####
+      ## REFERENCE START
+      ## dataset package article by Daniel Antal used as reference material when writing lines 269:277 below: https://dataset.dataobservatory.eu/articles/dataset.html
       v$output_dataset <- dataset::dataset(v$result,
                                            title = selected_lang_name,
                                            author = person(given = "Eurostat",
@@ -273,22 +275,26 @@ server <- function(input, output) {
                                            identifier = v$metadata$DOI_URL,
                                            version = v$metadata$Version,
                                            resourceType = "Dataset")
+      ## REFERENCE END
 
-      # dataset::provenance(v$output_dataset) <- list(
-      #   wasInformedBy="https://doi.org/10.32614/RJ-2017-019",
-      #
-      # )
-
-      # Datacite metadata print
+      # Datacite metadata print ####
       # Use dataset metadata as basis
+      ## REFERENCE START
+      ## dataset package article by Daniel Antal used as reference material when writing line 284 below: https://dataset.dataobservatory.eu/articles/metadata.html
       v$output_dataset_datacite <- dataset::as_datacite(v$output_dataset, "list")
-      # Dublincore metadata print
+      ## REFERENCE END
+      # Dublincore metadata print ####
       # Use dataset metadata as basis
+      ## REFERENCE START
+      ## dataset package article by Daniel Antal used as reference material when writing line 290 below: https://dataset.dataobservatory.eu/articles/metadata.html
       v$output_dataset_dublincore <- dataset::as_dublincore(v$output_dataset, "list")
+      ## REFERENCE END
 
       incProgress(1/n, detail = "Creating TTL object")
 
-      # TTL file
+      # TTL file ####
+      ## REFERENCE START
+      ## dataset package article by Daniel Antal used as reference material / code lines partially adapted when writing lines 298:320 below: https://dataset.dataobservatory.eu/articles/dataset.html
       v$dataset_ttl_file <- file.path(tempdir(), paste0(input$dataset_id, ".ttl"))
 
       v$output_dataset_namespace_ttl <- dataset::dataset_namespace[
@@ -312,15 +318,14 @@ server <- function(input, output) {
         ttl_namespace = v$output_dataset_namespace_ttl,
         file_path = v$dataset_ttl_file
       )
+      ## REFERENCE END
 
-      # RDF file
+      # RDF file ####
 
       incProgress(1/n, detail = "Creating RDF object")
 
-      # v$output_dataset_rdf <- dataset::id_to_column(
-      #   x = v$output_dataset,
-      #   prefix = paste0(input$dataset_id, ":"),
-      #   ids = NULL)
+      ## REFERENCE START
+      ## dataset package article by Daniel Antal used as reference material when writing lines 330:356 below: https://dataset.dataobservatory.eu/articles/RDF.html
 
       v$output_dataset_rdf <- as.data.frame(v$output_dataset)
       rownames(v$output_dataset_rdf) <- paste0(input$dataset_id, ":o", rownames(v$output_dataset))
@@ -349,20 +354,29 @@ server <- function(input, output) {
         overwrite = TRUE)
 
       v$rdf <- rdflib::rdf_parse(v$dataset_rdf_file, format = "turtle")
+
+      ## REFERENCE END
+
       sink(v$dataset_rdf_file2)
       print(v$rdf)
       sink()
 
-      # JSON-LD
+      # JSON-LD ####
 
       incProgress(1/n, detail = "Creating JSON-LD object")
+
+      ## REFERENCE START
+      ## dataset package article by Daniel Antal used as reference material when writing lines 371:372 below: https://dataset.dataobservatory.eu/articles/RDF.html
 
       v$json_ld_file <- file.path(tempdir(), paste0(input$dataset_id, "jsonld.json"))
       v$json_ld <- rdflib::rdf_serialize(rdf = v$rdf, doc = v$json_ld_file, format = "jsonld")
 
-      # CSVW JSON metadata
+      # CSVW JSON metadata ####
 
       incProgress(1/n, detail = "Creating CSVW JSON metadata")
+
+      ## REFERENCE START
+      ## csvwr package vignette by Robin Gower used as reference material when writing lines 381:393 below: https://cran.r-project.org/web/packages/csvwr/vignettes/read-write-csvw.html
 
       v$csvw_json_file <- file.path(tempdir(), paste0(input$dataset_id, "_metadata.json"))
 
@@ -377,7 +391,7 @@ server <- function(input, output) {
       v$m <- csvwr::create_metadata(tables=list(v$tb))
       v$json_metadata <- jsonlite::toJSON(v$m)
       v$csvw_json <- jsonlite::prettify(v$json_metadata)
-      # cat(v$csvw_json, file=v$csvw_json_file)
+      ## REFERENCE END
       sink(file = v$csvw_json_file)
       print(v$csvw_json)
       sink()
@@ -387,6 +401,8 @@ server <- function(input, output) {
 
 
   })
+
+  # UI outputs ####
 
   # Dataset view
     output$statistics_table_view <- DT::renderDataTable({
