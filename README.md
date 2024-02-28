@@ -77,6 +77,46 @@ With app.R file open in your workspace, click the "Run App" button next to the g
 
 We wish to acknowledge the importance of various open source contributors to realising this project. This Shiny application depends directly on `R: A Language and Environment for Statistical Computing` and various R Extensions, most notably `shiny`, `bslib`, `bsicons`, `eurostat`, `DT`, `dataset`, `rdflib`, `csvwr`, `jsonlite`, `jsonld`. Additionally, these direct dependencies depend on other R packages and external libraries. We are grateful to all open-source contributors.
 
+### Direct dependencies (references in alphabetical order)
+
+Antal D (2024). _dataset: Create Data Frames that are Easier to Exchange and
+  Reuse_. R package version 0.3.0,
+  <https://CRAN.R-project.org/package=dataset>.
+  
+Carl Boettiger. (2018). rdflib: A high level wrapper around the redland
+  package for common rdf applications (Version 0.1.0). Zenodo.
+  <https://doi.org/10.5281/zenodo.1098478>
+
+Chang W, Cheng J, Allaire J, Sievert C, Schloerke B, Xie Y, Allen J,
+  McPherson J, Dipert A, Borges B (2023). _shiny: Web Application Framework for
+  R_. R package version 1.8.0, <https://CRAN.R-project.org/package=shiny>.
+  
+Gower R (2022). _csvwr: Read and Write CSV on the Web (CSVW) Tables and
+  Metadata_. R package version 0.1.7,
+  <https://CRAN.R-project.org/package=csvwr>.
+  
+Lahti L., Huovari J., Kainu M., and Biecek P. (2017). Retrieval and analysis
+  of Eurostat open data with the eurostat package. The R Journal 9(1), pp.
+  385-392. doi: 10.32614/RJ-2017-019
+  
+Ooms J (2020). _jsonld: JSON for Linking Data_. R package version 2.2,
+  <https://CRAN.R-project.org/package=jsonld>.
+  
+Ooms J (2014). “The jsonlite Package: A Practical and Consistent Mapping
+  Between JSON Data and R Objects.” _arXiv:1403.2805 [stat.CO]_.
+  <https://arxiv.org/abs/1403.2805>.
+  
+Sievert C (2023). _bsicons: Easily Work with 'Bootstrap' Icons_. R package
+  version 0.1.2, <https://CRAN.R-project.org/package=bsicons>.
+  
+Sievert C, Cheng J, Aden-Buie G (2023). _bslib: Custom 'Bootstrap' 'Sass'
+  Themes for 'shiny' and 'rmarkdown'_. R package version 0.6.1,
+  <https://CRAN.R-project.org/package=bslib>.
+  
+Xie Y, Cheng J, Tan X (2024). _DT: A Wrapper of the JavaScript Library
+  'DataTables'_. R package version 0.32,
+  <https://CRAN.R-project.org/package=DT>.
+
 ## Disclaimer
 
 This project is not in any way affiliated with or endorsed by the statistical authority of the European Union, Eurostat.

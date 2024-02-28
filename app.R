@@ -207,7 +207,11 @@ ui <- page_navbar(
   those of the author(s) only and do not necessarily reflect those of the
   European Union or the European Research Executive Agency.
   Neither the European Union nor the granting authority can be held
-  responsible for them.")
+  responsible for them.
+  <br>
+  <h2>Source code</h2>
+  Source code for this Shiny app is freely available on GitHub: "),
+  a("https://github.com/pitkant/stats_shiny", href = "https://github.com/pitkant/stats_shiny", target = "_blank")
                 )
               )
             ),
