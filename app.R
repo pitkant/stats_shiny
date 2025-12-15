@@ -198,6 +198,9 @@ server <- function(input, output) {
     withProgress(message = "Progress", value = 0, {
 
       n <- 8
+
+      # EUROSTAT DATA RETRIEVAL ####
+
       incProgress(1/n, detail = "Downloading data from API")
 
       v$result <- eurostat::get_eurostat(
@@ -261,41 +264,8 @@ server <- function(input, output) {
         format = "turtle"
       )
 
-
-
-      ## REFERENCE END
-
-      # RDF file ####
-
-
-      # rownames(v$output_dataset_rdf) <- paste0(input$dataset_id, ":o", rownames(v$output_dataset))
-      # v$output_dataset_rdf <- dataset_to_triples(xsd_convert(v$output_dataset_rdf))
-      #
-      # v$output_dataset_namespace_rdf <- which(dataset_namespace$prefix %in% c(
-      #   "owl:", "rdf:", "rdfs:", "qb:", "xsd:")
-      # )
-      # v$output_dataset_namespace_rdf <- rbind(
-      #   dataset_namespace[v$output_dataset_namespace_rdf, ],
-      #   data.frame(
-      #     prefix = paste0(input$dataset_id, ":"),
-      #     uri = paste0("<www.example.com/", input$dataset_id, "#>"))
-      # )
-      #
-      # v$output_dataset_rdf$p <- paste0(input$dataset_id, ":", v$output_dataset_rdf$p)
-      # v$output_dataset_rdf$s <- paste0(input$dataset_id, ":", v$output_dataset_rdf$s)
-      #
-      # v$dataset_rdf_file_path <- file.path(tempdir(), paste0(input$dataset_id, "_rdf.ttl"))
       v$dataset_rdf_file_path2 <- file.path(tempdir(), paste0(input$dataset_id, "_rdf2.ttl"))
-      #
-      # dataset_ttl_write(
-      #   v$output_dataset_rdf,
-      #   ttl_namespace = v$output_dataset_namespace_rdf,
-      #   file_path = v$dataset_rdf_file_path,
-      #   overwrite = TRUE)
-
       v$rdf_ttl_viewable <- rdflib::rdf_parse(v$dataset_ttl_file_path, format = "turtle")
-
-      ## REFERENCE END
 
       sink(v$dataset_rdf_file_path2)
       print(v$rdf_ttl_viewable)
@@ -305,11 +275,7 @@ server <- function(input, output) {
 
       incProgress(1/n, detail = "Creating JSON-LD object")
 
-      ## REFERENCE START
-      ## dataset package article by Daniel Antal used as reference material when writing lines 371:372 below: https://dataset.dataobservatory.eu/articles/RDF.html
-
       v$json_ld_file_path <- file.path(tempdir(), paste0(input$dataset_id, "_jsonld.json"))
-      # v$json_ld <- rdflib::rdf_serialize(rdf = v$rdf_xml, doc = v$json_ld_file_path, format = "jsonld")
       rdflib::rdf_serialize(rdf = v$rdf_ttl_viewable,
                             doc = v$json_ld_file_path,
                             format = "jsonld")
@@ -318,7 +284,7 @@ server <- function(input, output) {
 
       incProgress(1/n, detail = "Creating CSVW JSON metadata")
 
-      ## REFERENCE START
+      ## REFERENCE START (csvwr)
       ## csvwr package vignette by Robin Gower used as reference material when writing lines 381:393 below: https://cran.r-project.org/web/packages/csvwr/vignettes/read-write-csvw.html
 
       v$csvw_json_file_path <- file.path(tempdir(), paste0(input$dataset_id, "_metadata.json"))
@@ -334,7 +300,9 @@ server <- function(input, output) {
       v$m <- csvwr::create_metadata(tables=list(v$tb))
       v$json_metadata <- jsonlite::toJSON(v$m)
       v$csvw_json <- jsonlite::prettify(v$json_metadata)
+
       ## REFERENCE END
+
       sink(file = v$csvw_json_file_path)
       print(v$csvw_json)
       sink()
