@@ -3,7 +3,6 @@ library(bslib)
 library(bsicons)
 library(eurostat)
 library(DT)
-library(dataset)
 library(rdflib)
 library(csvwr)
 library(jsonlite)
@@ -60,15 +59,6 @@ ui <- page_navbar(
                       value = FALSE)
         )
       )
-    # conditionalPanel(
-    #   "input.nav === 'Format: Dataset'",
-    #   icon = bsicons::bs_icon("file-earmark-code"),
-    #   selectInput(inputId = "selected_metadata_standard",
-    #               label = "Metadata implementation",
-    #               choices = c("dataset", "datacite", "dublincore"),
-    #               selected = "dataset",
-    #               multiple = FALSE)
-    #   )
     ),
 
   nav_spacer(),
@@ -87,35 +77,17 @@ ui <- page_navbar(
               )
             )
           ),
-  nav_panel("Format: Dataset",
+  nav_panel("Format: RDF-XML",
             card(
-              card_header("Dataset data (standard metadata): Preview"),
+              card_header("RDF data: Preview"),
               card_body(
-                verbatimTextOutput("format_dataset")
+                verbatimTextOutput("rdf_dataset")
               ),
               card_footer(
-                downloadButton('download_dataset_rds', "Download dataset as .rds file")
-              )
-            ),
-            card(
-              card_header("Datacite metadata: Preview"),
-              card_body(
-                verbatimTextOutput("format_dataset_datacite")
-              ),
-              card_footer(
-                downloadButton('download_dataset_datacite_rds', "Download metadata as .txt (datacite)")
-              )
-            ),
-            card(
-              card_header("Dublincore metadata: Preview"),
-              card_body(
-                verbatimTextOutput("format_dataset_dublincore")
-              ),
-              card_footer(
-                downloadButton('download_dataset_dublincore_rds', "Download metadata as .txt (dublincore)")
+                downloadButton('download_dataset_rdf', "Download dataset as RDF/.xml file")
               )
             )
-            ),
+  ),
   nav_panel("Format: TTL",
             card(
               card_header("TTL data: Preview"),
@@ -123,21 +95,10 @@ ui <- page_navbar(
                 verbatimTextOutput("ttl_dataset")
               ),
               card_footer(
-                downloadButton('download_dataset_ttl', "Download dataset as .ttl file")
+                downloadButton('download_dataset_ttl', "Download dataset as RDF/.ttl file")
               )
             )
           ),
-  nav_panel("Format: RDF",
-            card(
-              card_header("RDF data: Preview"),
-              card_body(
-                verbatimTextOutput("rdf_dataset")
-              ),
-              card_footer(
-                downloadButton('download_dataset_rdf', "Download dataset as RDF/.ttl file")
-              )
-            )
-            ),
   nav_panel("Format: JSON-LD",
             card(
               card_header("JSON-LD data: Preview"),
@@ -249,6 +210,11 @@ server <- function(input, output) {
         stringsAsFactors = FALSE,
         keepFlags = input$keepFlags)
 
+      v$concept_scheme <- eurostat:::get_sdmx_conceptscheme(
+        id = input$dataset_id,
+        lang = input$lang
+      )
+
       incProgress(1/n, detail = "Fetching citation metadata")
 
       v$citation <- eurostat::get_bibentry(
@@ -256,113 +222,83 @@ server <- function(input, output) {
         lang = input$lang
       )
 
-      incProgress(1/n, detail = "Extracting metadata")
+      incProgress(1/n, detail = "Extracting metadata (Eurostat dataflow)")
 
-      v$metadata <- eurostat:::extract_metadata(agency = "Eurostat", id = input$dataset_id)
+      v$dataflow <- eurostat:::get_sdmx_dataflow(agency = "Eurostat", id = input$dataset_id)
 
       selected_lang_name <- switch(
         input$lang,
-        "en" = v$metadata$Name_EN,
-        "fr" = v$metadata$Name_FR,
-        "de" = v$metadata$Name_DE
+        "en" = v$dataflow$name_en,
+        "fr" = v$dataflow$name_fr,
+        "de" = v$dataflow$name_de
       )
 
-      # Dataset object ####
-      ## REFERENCE START
-      ## dataset package article by Daniel Antal used as reference material when writing lines 269:277 below: https://dataset.dataobservatory.eu/articles/dataset.html
-      v$output_dataset <- dataset::dataset(v$result,
-                                           title = selected_lang_name,
-                                           author = person(given = "Eurostat",
-                                                           role = "aut"),
-                                           year = as.integer(substr(v$metadata$UpdateDataTimestamp, 1, 4)),
-                                           publisher = "Eurostat",
-                                           identifier = v$metadata$DOI_URL,
-                                           version = v$metadata$Version,
-                                           resourceType = "Dataset")
-      ## REFERENCE END
+      v$output_dataset <- v$result
 
-      # Datacite metadata print ####
-      # Use dataset metadata as basis
-      ## REFERENCE START
-      ## dataset package article by Daniel Antal used as reference material when writing line 284 below: https://dataset.dataobservatory.eu/articles/metadata.html
-      v$output_dataset_datacite <- dataset::as_datacite(v$output_dataset, "list")
-      ## REFERENCE END
-      # Dublincore metadata print ####
-      # Use dataset metadata as basis
-      ## REFERENCE START
-      ## dataset package article by Daniel Antal used as reference material when writing line 290 below: https://dataset.dataobservatory.eu/articles/metadata.html
-      v$output_dataset_dublincore <- dataset::as_dublincore(v$output_dataset, "list")
-      ## REFERENCE END
+      incProgress(1/n, detail = "Creating RDF object")
+
+      # RDF/XML file ####
+
+      v$output_dataset_rdf <- suppressWarnings(
+        rdflib::as_rdf(v$output_dataset)
+        )
+
+      v$dataset_rdf_file_path <- file.path(tempdir(), paste0(input$dataset_id, "_rdf.rdf"))
+
+      rdflib::rdf_serialize(v$output_dataset_rdf,
+                            doc = v$dataset_rdf_file_path,
+                            format = "rdfxml")
 
       incProgress(1/n, detail = "Creating TTL object")
 
       # TTL file ####
-      ## REFERENCE START
-      ## dataset package article by Daniel Antal used as reference material / code lines partially adapted when writing lines 298:320 below: https://dataset.dataobservatory.eu/articles/dataset.html
-      v$dataset_ttl_file <- file.path(tempdir(), paste0(input$dataset_id, ".ttl"))
 
-      v$output_dataset_namespace_ttl <- dataset::dataset_namespace[
-        dataset_namespace$prefix %in% c("owl:", "rdf:", "rdfs:", "qb:", "eg:"), ]
+      v$dataset_ttl_file_path <- file.path(tempdir(), paste0(input$dataset_id, "_rdf.ttl"))
 
-      v$output_dataset_ttl <- dataset::id_to_column(
-        x = v$output_dataset,
-        prefix = "eg:",
-        ids = NULL)
-
-      v$output_dataset_ttl <- dataset::dataset_to_triples(
-        x = v$output_dataset_ttl,
-        idcol = "rowid"
+      rdflib::rdf_serialize(
+        v$output_dataset_rdf,
+        doc = v$dataset_ttl_file_path,
+        format = "turtle"
       )
 
-      v$output_dataset_ttl$p <- paste0("eg:", input$dataset_id, "#", v$output_dataset_ttl$p)
-      v$output_dataset_ttl$o <- dataset::xsd_convert(v$output_dataset_ttl$o)
 
-      dataset::dataset_ttl_write(
-        tdf = v$output_dataset_ttl,
-        ttl_namespace = v$output_dataset_namespace_ttl,
-        file_path = v$dataset_ttl_file
-      )
+
       ## REFERENCE END
 
       # RDF file ####
 
-      incProgress(1/n, detail = "Creating RDF object")
 
-      ## REFERENCE START
-      ## dataset package article by Daniel Antal used as reference material when writing lines 330:356 below: https://dataset.dataobservatory.eu/articles/RDF.html
+      # rownames(v$output_dataset_rdf) <- paste0(input$dataset_id, ":o", rownames(v$output_dataset))
+      # v$output_dataset_rdf <- dataset_to_triples(xsd_convert(v$output_dataset_rdf))
+      #
+      # v$output_dataset_namespace_rdf <- which(dataset_namespace$prefix %in% c(
+      #   "owl:", "rdf:", "rdfs:", "qb:", "xsd:")
+      # )
+      # v$output_dataset_namespace_rdf <- rbind(
+      #   dataset_namespace[v$output_dataset_namespace_rdf, ],
+      #   data.frame(
+      #     prefix = paste0(input$dataset_id, ":"),
+      #     uri = paste0("<www.example.com/", input$dataset_id, "#>"))
+      # )
+      #
+      # v$output_dataset_rdf$p <- paste0(input$dataset_id, ":", v$output_dataset_rdf$p)
+      # v$output_dataset_rdf$s <- paste0(input$dataset_id, ":", v$output_dataset_rdf$s)
+      #
+      # v$dataset_rdf_file_path <- file.path(tempdir(), paste0(input$dataset_id, "_rdf.ttl"))
+      v$dataset_rdf_file_path2 <- file.path(tempdir(), paste0(input$dataset_id, "_rdf2.ttl"))
+      #
+      # dataset_ttl_write(
+      #   v$output_dataset_rdf,
+      #   ttl_namespace = v$output_dataset_namespace_rdf,
+      #   file_path = v$dataset_rdf_file_path,
+      #   overwrite = TRUE)
 
-      v$output_dataset_rdf <- as.data.frame(v$output_dataset)
-      rownames(v$output_dataset_rdf) <- paste0(input$dataset_id, ":o", rownames(v$output_dataset))
-      v$output_dataset_rdf <- dataset_to_triples(xsd_convert(v$output_dataset_rdf))
-
-      v$output_dataset_namespace_rdf <- which(dataset_namespace$prefix %in% c(
-        "owl:", "rdf:", "rdfs:", "qb:", "xsd:")
-      )
-      v$output_dataset_namespace_rdf <- rbind(
-        dataset_namespace[v$output_dataset_namespace_rdf, ],
-        data.frame(
-          prefix = paste0(input$dataset_id, ":"),
-          uri = paste0("<www.example.com/", input$dataset_id, "#>"))
-      )
-
-      v$output_dataset_rdf$p <- paste0(input$dataset_id, ":", v$output_dataset_rdf$p)
-      v$output_dataset_rdf$s <- paste0(input$dataset_id, ":", v$output_dataset_rdf$s)
-
-      v$dataset_rdf_file <- file.path(tempdir(), paste0(input$dataset_id, "_rdf.ttl"))
-      v$dataset_rdf_file2 <- file.path(tempdir(), paste0(input$dataset_id, "_rdf2.ttl"))
-
-      dataset_ttl_write(
-        v$output_dataset_rdf,
-        ttl_namespace = v$output_dataset_namespace_rdf,
-        file_path = v$dataset_rdf_file,
-        overwrite = TRUE)
-
-      v$rdf <- rdflib::rdf_parse(v$dataset_rdf_file, format = "turtle")
+      v$rdf_ttl_viewable <- rdflib::rdf_parse(v$dataset_ttl_file_path, format = "turtle")
 
       ## REFERENCE END
 
-      sink(v$dataset_rdf_file2)
-      print(v$rdf)
+      sink(v$dataset_rdf_file_path2)
+      print(v$rdf_ttl_viewable)
       sink()
 
       # JSON-LD ####
@@ -372,8 +308,11 @@ server <- function(input, output) {
       ## REFERENCE START
       ## dataset package article by Daniel Antal used as reference material when writing lines 371:372 below: https://dataset.dataobservatory.eu/articles/RDF.html
 
-      v$json_ld_file <- file.path(tempdir(), paste0(input$dataset_id, "jsonld.json"))
-      v$json_ld <- rdflib::rdf_serialize(rdf = v$rdf, doc = v$json_ld_file, format = "jsonld")
+      v$json_ld_file_path <- file.path(tempdir(), paste0(input$dataset_id, "_jsonld.json"))
+      # v$json_ld <- rdflib::rdf_serialize(rdf = v$rdf_xml, doc = v$json_ld_file_path, format = "jsonld")
+      rdflib::rdf_serialize(rdf = v$rdf_ttl_viewable,
+                            doc = v$json_ld_file_path,
+                            format = "jsonld")
 
       # CSVW JSON metadata ####
 
@@ -382,7 +321,7 @@ server <- function(input, output) {
       ## REFERENCE START
       ## csvwr package vignette by Robin Gower used as reference material when writing lines 381:393 below: https://cran.r-project.org/web/packages/csvwr/vignettes/read-write-csvw.html
 
-      v$csvw_json_file <- file.path(tempdir(), paste0(input$dataset_id, "_metadata.json"))
+      v$csvw_json_file_path <- file.path(tempdir(), paste0(input$dataset_id, "_metadata.json"))
 
       s <- csvwr::derive_table_schema(v$output_dataset)
       s$columns$titles[which(s$columns$titles == "values")] <- "OBS_VALUE"
@@ -396,7 +335,7 @@ server <- function(input, output) {
       v$json_metadata <- jsonlite::toJSON(v$m)
       v$csvw_json <- jsonlite::prettify(v$json_metadata)
       ## REFERENCE END
-      sink(file = v$csvw_json_file)
+      sink(file = v$csvw_json_file_path)
       print(v$csvw_json)
       sink()
 
@@ -468,8 +407,8 @@ server <- function(input, output) {
 
     # TTL
     output$ttl_dataset <- renderPrint({
-      req(v$dataset_ttl_file)
-      print(readLines(v$dataset_ttl_file, 30))
+      req(v$dataset_ttl_file_path)
+      print(readLines(v$dataset_ttl_file_path, 30))
     })
 
     output$download_dataset_ttl <- downloadHandler(
@@ -477,14 +416,14 @@ server <- function(input, output) {
         paste0(input$dataset_id,"_ttl.ttl")
       },
       content = function(file) {
-        file.copy(v$dataset_ttl_file, file)
+        file.copy(v$dataset_ttl_file_path, file)
       }
     )
 
     # RDF
     output$rdf_dataset <- renderPrint({
-      req(v$dataset_rdf_file2)
-      readLines(v$dataset_rdf_file2, 30)
+      req(v$dataset_rdf_file_path2)
+      readLines(v$dataset_rdf_file_path2, 30)
     })
 
     output$download_dataset_rdf <- downloadHandler(
@@ -492,14 +431,14 @@ server <- function(input, output) {
         paste0(input$dataset_id,"_rdf.ttl")
       },
       content = function(file) {
-        file.copy(v$dataset_rdf_file, file)
+        file.copy(v$dataset_rdf_file_path, file)
       }
     )
 
     # JSON-LD
     output$json_ld_dataset <- renderPrint({
-      req(v$json_ld_file)
-      readLines(v$json_ld_file, 30)
+      req(v$json_ld_file_path)
+      readLines(v$json_ld_file_path, 30)
     })
 
     output$download_dataset_json_ld <- downloadHandler(
@@ -513,8 +452,8 @@ server <- function(input, output) {
 
     # CSVW JSON metadata
     output$csvw_json <- renderPrint({
-      req(v$csvw_json_file)
-      readLines(v$csvw_json_file, 100)
+      req(v$csvw_json_file_path)
+      readLines(v$csvw_json_file_path, 100)
     })
 
     output$download_csvw_json <- downloadHandler(
@@ -522,7 +461,7 @@ server <- function(input, output) {
         paste0(input$dataset_id,"_metadata.json")
       },
       content = function(file) {
-        file.copy(v$csvw_json_file, file)
+        file.copy(v$csvw_json_file_path, file)
       },
       contentType = "application/json"
     )

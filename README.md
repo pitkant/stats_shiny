@@ -42,19 +42,24 @@ To run the Shiny app in this repository, you need to have RStudio installed on y
 1. Open RStudio on your computer.
 2. Navigate to the directory where you cloned or downloaded the repository.
 3. Open the app.R file in RStudio.
-4. In the RStudio console, run the following command to install necessary packages (if not already installed):
+4. In the RStudio console, run the following commands to install necessary packages (if not already installed):
 
 ```
-install.packages(c("shiny", "bslib", "bsicons", "eurostat", "DT", "dataset", "rdflib", "csvwr", "jsonlite", "jsonld"))
+install.packages(c("shiny", "bslib", "bsicons", "DT", "dataset", "rdflib", "csvwr", "jsonlite", "jsonld"))
+```
+
+Development version of Eurostat:
+
+```
+remotes::install_github("ropengov/eurostat", ref = "v4.1")
 ```
 
 Please note that rdflib package may require installing additional system dependencies on your computer, depending on whether you are running macOS or some Linux distribution. If you receive an error message while trying to install rdflib or its dependency redland, please read the installation instructions there carefully and follow them.
 
-Please note that the dataset package can be installed with the following command:
+Alternatively, the specific packages can be retrieved and installed by reading the renv lockfile and restoring the status of the project as it was on the computer used to develop this Shiny application:
 
 ```
-source_url <- https://cran.r-project.org/src/contrib/Archive/dataset/dataset_0.3.1.tar.gz
-install.packages(source_url, repos=NULL, type="source", dependencies = TRUE)
+renv::restore()
 ```
 
 ### Run from R console
