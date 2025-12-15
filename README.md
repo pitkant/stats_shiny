@@ -84,10 +84,6 @@ We wish to acknowledge the importance of various open source contributors to rea
 
 ### Direct dependencies (references in alphabetical order)
 
-Antal D (2024). _dataset: Create Data Frames that are Easier to Exchange and
-  Reuse_. R package version 0.3.0,
-  <https://CRAN.R-project.org/package=dataset>.
-  
 Carl Boettiger. (2018). rdflib: A high level wrapper around the redland
   package for common rdf applications (Version 0.1.0). Zenodo.
   <https://doi.org/10.5281/zenodo.1098478>
