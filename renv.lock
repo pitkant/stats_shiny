@@ -104,6 +104,26 @@
       ],
       "Hash": "23eeca7d3c7d63fc7449108c0a66178c"
     },
+    "RefManageR": {
+      "Package": "RefManageR",
+      "Version": "1.4.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "bibtex",
+        "httr",
+        "jsonlite",
+        "lubridate",
+        "methods",
+        "plyr",
+        "stringr",
+        "tools",
+        "utils",
+        "xml2"
+      ],
+      "Hash": "d22e94d9088f55cc112e722888afcc70"
+    },
     "V8": {
       "Package": "V8",
       "Version": "8.0.1",
@@ -137,6 +157,16 @@
       ],
       "Hash": "50c838a310445e954bc13f26f26a6ecf"
     },
+    "backports": {
+      "Package": "backports",
+      "Version": "1.5.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "e1e1b9d75c37401117b636b7ae50827a"
+    },
     "base64enc": {
       "Package": "base64enc",
       "Version": "0.1-3",
@@ -146,6 +176,18 @@
         "R"
       ],
       "Hash": "543776ae6848fde2f48ff3816d0628bc"
+    },
+    "bibtex": {
+      "Package": "bibtex",
+      "Version": "0.5.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "backports",
+        "utils"
+      ],
+      "Hash": "a704d52e87822191b42c715c568f96dd"
     },
     "bit": {
       "Package": "bit",
@@ -455,18 +497,13 @@
     },
     "eurostat": {
       "Package": "eurostat",
-      "Version": "4.1.0.9006",
-      "Source": "GitHub",
+      "Version": "4.0.0",
+      "Source": "Repository",
       "Repository": "CRAN",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "eurostat",
-      "RemoteUsername": "ropengov",
-      "RemoteRef": "v4.1",
-      "RemoteSha": "caf15c898ce04858a4587962bdd7be01dfd0ff96",
       "Requirements": [
         "ISOweek",
         "R",
+        "RefManageR",
         "classInt",
         "countrycode",
         "curl",
@@ -476,7 +513,6 @@
         "httr2",
         "jsonlite",
         "lubridate",
-        "purrr",
         "rappdirs",
         "readr",
         "regions",
@@ -487,7 +523,7 @@
         "tidyr",
         "xml2"
       ],
-      "Hash": "cb8c4d8d9d549756532aba392a41788c"
+      "Hash": "0c47aa277743a3410af9d211168ca0c7"
     },
     "evaluate": {
       "Package": "evaluate",
@@ -632,6 +668,21 @@
         "utils"
       ],
       "Hash": "6c3c8728e40326de6529a5c46e377e5c"
+    },
+    "httr": {
+      "Package": "httr",
+      "Version": "1.4.7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "curl",
+        "jsonlite",
+        "mime",
+        "openssl"
+      ],
+      "Hash": "ac107251d9d9fd72f0ca8049988f1d7f"
     },
     "httr2": {
       "Package": "httr2",
@@ -884,6 +935,17 @@
         "utils"
       ],
       "Hash": "6f2060ae5ad112cc61df8876f93993de"
+    },
+    "plyr": {
+      "Package": "plyr",
+      "Version": "1.8.9",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "Rcpp"
+      ],
+      "Hash": "6b8177fd19982f0020743fadbfdbd933"
     },
     "prettyunits": {
       "Package": "prettyunits",
